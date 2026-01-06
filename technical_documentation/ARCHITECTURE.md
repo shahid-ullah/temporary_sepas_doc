@@ -1,125 +1,91 @@
-# 📘 SEN Backend – Architecture & Design Documentation
+# 📘 SEPAS Backend – Architecture & Design Documentation
 
 ### 1. Overview
 
-    The SEN (Strategic Enterprise Navigator) Backend is built with NestJS and PostgreSQL, structured around Clean Architecture principles.
+    The SEPAS (Smart Energy Planning and Analysis System) Backend is built with FastAPI and PostgreSQL, structured around Clean Architecture principles.
 
     🔹It follows a layered approach using:
 
         🔹 Repository Pattern
-
         🔹 Service Layer Pattern
-
         🔹 DTO (Data Transfer Object) Pattern
-
         🔹 Module Pattern (NestJS feature modules)
-
         🔹 Guard Pattern (Authentication/Authorization)
-
         🔹 This ensures the system is modular, testable, and scalable.
 
 ### 2. Project Structure
 
 ```bash
-    📂 sen-backend/
-    ┣ 📂 src/
-    ┃ ┣ 📂 modules/ # Feature Modules (Controllers, Services, Repositories)
-    ┃ ┃ ┣ 📂 user/ # User management
-    ┃ ┃ ┣ 📂 logger/ # Logging functionality
-    ┃ ┃ ┣ 📂 auth/ # Authentication & authorization
-    ┃ ┃ ┣ 📂 database/ # Database service (Prisma Client wrapper, Global module)
-    ┃ ┃ ┣ 📂 domain/ # Domain management
-    ┃ ┃ ┣ 📂 objective/ # Objective management
-    ┃ ┃ ┣ 📂 capability/ # Capability management
-    ┃ ┃ ┣ 📂 initiative/ # Initiative management
-    ┃ ┃ ┣ 📂 tech-class/ # Technology class management
-    ┃ ┃ ┣ 📂 tech-sub-class/ # Technology sub-class management
-    ┃ ┃ ┣ 📂 technology/ # Technology management
-    ┃ ┃ ┣ 📂 sector/ # Sector management
-    ┃ ┃ ┣ 📂 project/ # Project CRUD operations
-    ┃ ┃ ┣ 📂 project-capability/ # Project capability management
-    ┃ ┃ ┣ 📂 project-technology/ # Project technology management
-    ┃ ┃ ┣ 📂 project-domain/ # Project domain management
-    ┃ ┃ ┣ 📂 project-objective/ # Project objective management
-    ┃ ┃ ┣ 📂 project-initiative/ # Project initiative management
-    ┃ ┃ ┣ 📂 project-technology-class/ # Project technology class management
-    ┃ ┃ ┣ 📂 project-technology-sub-class/ # Project technology sub-class management
-    ┃ ┃ ┣ 📂 optimization-matrix/ # Optimization matrix
-    ┃ ┃ ┣ 📂 import-domain/ # Domain import functionality
-    ┃ ┃ ┣ 📂 import-technologies/ # Technology import functionality
-    ┃ ┃ ┣ 📂 export-technologies/ # Technology export functionality
-    ┃ ┃ ┣ 📂 export-domain/ # Domain export functionality
-    ┃ ┃ ┣ 📂 import-capability/ # Capability import functionality
-    ┃ ┃ ┣ 📂 import-initiatives/ # Initiative import functionality
-    ┃ ┃ ┣ 📂 export-capability/ # Capability export functionality
-    ┃ ┃ ┣ 📂 notes/ # Notes management
-    ┃ ┃ ┣ 📂 version/ # Version management
-    ┃ ┃ ┣ 📂 calculate-xlsx-data/ # Excel data calculation
-    ┃ ┃ ┣ 📂 spider-diagram/ # Spider diagram visualization
-    ┃ ┃ ┣ 📂 role/ # Role management
-    ┃ ┃ ┣ 📂 parameter-group/ # Parameter group management
-    ┃ ┃ ┣ 📂 project-kpi/ # Project KPI management
-    ┃ ┃ ┣ 📂 kpi-impact-matrix/ # KPI impact matrix
-    ┃ ┃ ┣ 📂 year-duration/ # Year duration management
-    ┃ ┃ ┣ 📂 value-pack-year/ # Value pack year management
-    ┃ ┃ ┣ 📂 project-collaborator/ # Project collaborator management
-    ┃ ┃ ┣ 📂 parameter-unit/ # Parameter unit management
-    ┃ ┃ ┣ 📂 parameter-period/ # Parameter period management
-    ┃ ┃ ┣ 📂 kpi/ # KPI management
-    ┃ ┃ ┣ 📂 project-kpi-list/ # Project KPI list management
-    ┃ ┃ ┣ 📂 hourly-rate/ # Hourly rate management
-    ┃ ┃ ┣ 📂 hourly-rate-core/ # Core hourly rate management
-    ┃ ┃ ┣ 📂 project-parameter-unit/ # Project parameter unit management
-    ┃ ┃ ┣ 📂 project-parameter-period/ # Project parameter period management
-    ┃ ┃ ┣ 📂 cost/ # Cost management
-    ┃ ┃ ┣ 📂 phase/ # Phase management
-    ┃ ┃ ┣ 📂 cost-sheet/ # Cost sheet management
-    ┃ ┃ ┣ 📂 project-kpi-sheet/ # Project KPI sheet management
-    ┃ ┃ ┣ 📂 initiaitive-cost-sheet/ # Initiative cost sheet management
-    ┃ ┃ ┣ 📂 rollout-table/ # Rollout table management
-    ┃ ┃ ┣ 📂 project-overview-sheet/ # Project overview sheet
-    ┃ ┃ ┣ 📂 project-budget-sheet/ # Project budget sheet management
-    ┃ ┃ ┣ 📂 project-sensitivity-analysis-sheet/ # Sensitivity analysis sheet
-    ┃ ┃ ┣ 📂 currency/ # Currency management
-    ┃ ┃ ┣ 📂 external/ # External API modules
-    ┃ ┃ ┃ ┣ 📂 auth/ # External authentication
-    ┃ ┃ ┃ ┣ 📂 external-company/ # External company management
-    ┃ ┃ ┃ ┣ 📂 external-company-projects/ # External company projects
-    ┃ ┃ ┃ ┣ 📂 external-user/ # External user management
-    ┃ ┃ ┃ ┣ 📂 external-value-pack-year/ # External value pack year
-    ┃ ┃ ┃ ┣ 📂 external-optimization-matrix/ # External optimization matrix
-    ┃ ┃ ┃ ┣ 📂 external-project-technology/ # External project technology
-    ┃ ┃ ┃ ┣ 📂 external-hourly-rate/ # External hourly rate
-    ┃ ┃ ┃ ┣ 📂 external-rollout-table/ # External rollout table
-    ┃ ┃ ┃ ┣ 📂 external-project-budget-sheet/ # External project budget sheet
-    ┃ ┃ ┃ ┣ 📂 external-project-sensitivity-analysis-sheet/ # External sensitivity analysis
-    ┃ ┃ ┃ ┣ 📂 external-overview-sheet/ # External overview sheet
-    ┃ ┣ 📂 common/ # Shared utilities and cross-cutting concerns
-    ┃ ┃ ┣ 📂 config/ # Configuration files
-    ┃ ┃ ┣ 📂 constants/ # Application constants
-    ┃ ┃ ┣ 📂 decorators/ # Custom decorators
-    ┃ ┃ ┣ 📂 pipes/ # Validation pipes
-    ┃ ┃ ┣ 📂 types/ # TypeScript types
-    ┃ ┃ ┣ 📂 utils/ # Utility functions
-    ┃ ┣ 📂 app.module.ts # Root module
-    ┃ ┣ 📂 app.controller.ts # Root controller
-    ┃ ┣ 📂 app.service.ts # Root service
-    ┃ ┣ 📂 main.ts # Application entry point
-    ┣ 📂 prisma/
-    ┃ ┣ 📂 migrations/ # Database migrations
-    ┃ ┣ 📂 seed/ # Database seed files
-    ┃ ┣ 📂 seed-xlsx/ # Excel seed files
-    ┃ ┣ 📄 schema.prisma # Prisma schema definition
-    ┃ ┣ 📄 database.config.ts # Database configuration
-    ┃ ┣ 📄 seed.ts # Main seed file
-    ┣ 📂 test/ # E2E tests
-    ┣ 📂 docs/ # Documentation
-    ┣ 📄 package.json
-    ┣ 📄 tsconfig.json
-    ┣ 📄 nest-cli.json
-    ┣ 📄 Dockerfile
-    ┣ 📄 docker-compose.yml
-    ┣ 📄 .env
+|sepas-backend
+|___
+    ├── alembic.ini
+    ├── apps # Modules (Model, Controllers, Dependency Handlers)
+    │   ├── base_app # Module: common application logic
+    │   │   ├── __init__.py
+    │   │   ├── models.py # common application database tables
+    │   │   ├── router.py # common application controllers & Dependency Handlers
+    │   │   ├── serializers.py # common application serializer/deserializer
+    │   │   └── utils.py # common application utils
+    │   ├── nrel_app # Module: NREL service Management
+    │   │   ├── __init__.py
+    │   │   ├── models.py # NREL service raw data storage tables.
+    │   │   ├── router.py # NREL service API's controllers & Dependency Handlers.
+    │   │   ├── serializers.py # NREL service data serializer/deserializer
+    │   │   └── utils.py # NREL service utils
+    │   ├── pypsa_engine # Module: PyPSA https://github.com/PyPSA/PyPSA
+    │   │   ├── __init__.py
+    │   │   ├── constants.py
+    │   │   ├── models.py
+    │   │   ├── router.py
+    │   │   ├── serializers.py
+    │   │   ├── utils.py
+    │   │   └── validators.py
+    │   └── user_app
+    │       ├── __init__.py
+    │       ├── models.py
+    │       ├── router.py
+    │       ├── serializers.py
+    │       └── utils.py
+    ├── docker-compose.yml
+    ├── Dockerfile
+    ├── entrypoint.sh
+    ├── env.example
+    ├── format.ps1
+    ├── LICENSE
+    ├── list_routes.py
+    ├── log.log
+    ├── logs
+    │   └── app.log
+    ├── main.py # Application Entry-point
+    ├── migrations
+    │   ├── env.py
+    │   ├── README
+    │   ├── script.py.mako
+    │   └── versions
+    ├── pyproject.toml
+    ├── README.md
+    ├── requirements.txt
+    ├── ruff.toml
+    ├── shell.py
+    ├── tags
+    ├── tests
+    │   ├── nrel_app
+    │   │   ├── __init__.py
+    │   │   └── test_nrel_solar_wind_fetch.py
+    │   ├── test_file_to_df.py
+    │   └── user_app
+    │       └── test_user_app_routes.py
+    ├── utils
+    │   ├── __init__.py
+    │   ├── components.py
+    │   ├── config.py
+    │   ├── constants.py
+    │   ├── database.py
+    │   ├── helpers.py
+    │   ├── logging.py
+    │   └── validators.py
+    └── uv.lock
+
 ```
 
 #### Complete Module List

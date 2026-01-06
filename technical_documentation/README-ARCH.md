@@ -1,24 +1,24 @@
-# 📘 SEN Backend – Architecture Guide
+# 📘 SEPAS Backend – Architecture Guide
 
 ### 1. Purpose
 
-    This document provides a high-level overview of the SEN (Strategic Enterprise Navigator) backend architecture, the principles behind its design, and how developers should extend or modify the system safely.
+    This document provides a high-level overview of the SEPAS (Smart Energy Planning and Analysis System) backend architecture, the principles behind its design, and how developers should extend or modify the system safely.
 
 ### 2. Tech Stack
 
-    🔹 Language: TypeScript 5.6+
+    🔹 Language: Python 3.12+
 
-    🔹 Framework: NestJS 10+
+    🔹 Framework: FastAPI
 
-    🔹 Database: PostgreSQL (Prisma ORM + Prisma Migrate)
+    🔹 Database: PostgreSQL (SQLAlchemy ORM + Alembic Migrate)
 
-    🔹 API: REST (Fastify adapter)
+    🔹 API: REST
 
-    🔹 Auth: JWT (JSON Web Tokens) with Guards
+    🔹 Auth: JWT (JSON Web Tokens)
 
-    🔹 Testing: Jest
+    🔹 Testing: Pytest
 
-    🔹 Validation: class-validator, Zod
+    🔹 Validation: Pydantic
 
     🔹 Documentation: Swagger/OpenAPI
 
@@ -29,7 +29,7 @@
 ### 3. Clean Architecture Layers
 
 ```bash
-   Client → Controller Layer → Service Layer → Repository Layer → Prisma Client → PostgreSQL
+   Client → Router → Controller (Endpoint Handler) → Repository Layer(models) → Database Client (SQLAlchemy) → PostgreSQL
 ```
 
 #### Controller Layer (`src/modules/*/controllers/`)
