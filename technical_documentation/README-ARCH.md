@@ -1,171 +1,210 @@
-# 📘 SEPAS Backend – Architecture Guide
+# SEPAS Backend – Architecture & Developer Guide
 
-### 1. Purpose
+## 1. Purpose
 
-    This document provides a high-level overview of the SEPAS (Smart Energy Planning and Analysis System) backend architecture, the principles behind its design, and how developers should extend or modify the system safely.
+This document provides a **high-level overview** of the **SEPAS (Smart Energy Planning and Analysis System) backend**, the architectural principles behind its design, and clear guidance on how developers should **understand, extend, and maintain** the system safely.
 
-### 2. Tech Stack
+The goal of this documentation is to ensure:
 
-    🔹 Language: Python 3.12+
+- Architectural consistency
+- Clear domain boundaries
+- Predictable extension patterns
+- Long-term maintainability
 
-    🔹 Framework: FastAPI
+## 2. Tech Stack
 
-    🔹 Database: PostgreSQL (SQLAlchemy ORM + Alembic Migrate)
+- **Language:** Python 3.12+
+- **Framework:** FastAPI
+- **Database:** PostgreSQL (SQLAlchemy ORM + Alembic)
+- **API Style:** REST
+- **Authentication:** JWT (JSON Web Tokens)
+- **Validation:** Pydantic
+- **Testing:** Pytest
+- **Documentation:** Swagger / OpenAPI (`/docs`)
+- **Deployment:** Docker, Docker Compose
+- **File Storage:** AWS S3
+- **Linting & Formatting:** Ruff
 
-    🔹 API: REST
+## 3. Architectural Overview
 
-    🔹 Auth: JWT (JSON Web Tokens)
+SEPAS is implemented as a **Modular Monolith** using a **feature-based application architecture**, inspired by Django’s app structure.
 
-    🔹 Testing: Pytest
+Instead of enforcing strict Clean Architecture, the system adopts a **pragmatic, domain-oriented design** that balances clarity, scalability, and simplicity.
 
-    🔹 Validation: Pydantic
+### High-Level Request Flow
 
-    🔹 Documentation: Swagger/OpenAPI
-
-    🔹 Deployment: Docker, Docker Compose
-
-    🔹 File Storage: AWS S3
-
-### 3. Clean Architecture Layers
-
-```bash
-   Client → Router → Controller (Endpoint Handler) → Repository Layer(models) → Database Client (SQLAlchemy) → PostgreSQL
+```text
+Client
+→ FastAPI Router
+→ Pydantic Validation
+→ Domain Logic (module utils)
+→ SQLAlchemy ORM
+→ PostgreSQL
+→ Serialized Response
 ```
 
-#### Controller Layer (`src/modules/*/controllers/`)
+## 4. Project Structure
 
-    🔹 REST controllers (NestJS controllers).
+```text
+sepas-backend/
+├── apps/                 # Feature-based application modules
+│   ├── user_app/
+│   ├── nrel_app/
+│   ├── pypsa_engine/
+│   └── base_app/
+│
+├── utils/                # Shared cross-cutting utilities
+├── migrations/           # Alembic/Database migrations
+├── tests/                # Module-aligned test suites
+├── main.py               # Application entry point
+├── Dockerfile
+├── docker-compose.yml
+└── requirements.txt
+```
 
-    🔹 Handles HTTP requests/responses.
+## 5. Feature-Based Application Modules
 
-    🔹 Validates inputs using DTOs and decorators.
+Each folder under `apps/` represents a **self-contained domain module**.
 
-    🔹 Delegates to services.
+### Example Module Structure
 
-    🔹 Never contains business logic.
+```text
+apps/user_app/
+├── models.py        # SQLAlchemy ORM models
+├── router.py        # FastAPI routes & dependencies
+├── serializers.py   # Pydantic schemas (DTOs)
+├── utils.py         # Domain logic & helpers
+```
 
-#### Service Layer (`src/modules/*/services/`)
+### Design Characteristics
 
-    🔹 Encapsulates business rules.
+- Each module owns its **routes, models, and validation**
+- Modules do not directly depend on each other
+- Shared logic is extracted into `utils/`
+- Clear boundaries reduce coupling and simplify testing
 
-    🔹 Talks to repositories, raises business errors.
+## 6. Layered Design (Within a Module)
 
-    🔹 Can be tested independently of controllers or DB.
+Each module follows a **local layered architecture**:
 
-#### Repository Layer (`src/modules/*/repositories/`)
+### Router Layer (`router.py`)
 
-    🔹 Handles persistence using Prisma Client.
+- Defines HTTP endpoints
+- Handles dependency injection
+- Orchestrates request flow
+- Contains minimal business logic
 
-    🔹 Provides CRUD methods.
+### Serializer / DTO Layer (`serializers.py`)
 
-    🔹 Services depend on these abstractions.
+- Defines request and response schemas
+- Performs validation using Pydantic
+- Prevents ORM leakage into APIs
 
-#### Domain Models (`prisma/schema.prisma`)
+### Model Layer (`models.py`)
 
-    🔹 Prisma schema defines database models.
+- SQLAlchemy ORM models
+- Database persistence mapping
+- No FastAPI or HTTP dependencies
 
-    🔹 Represents core SEN business objects (Project, Capability, Technology, etc.).
+### Domain Logic (`utils.py`, `validators.py`)
 
-#### DTOs (`src/modules/*/dto.ts`)
+- Business rules
+- Computation and transformations
+- Reusable across endpoints
 
-    🔹 Data Transfer Objects used for request/response validation.
+## 7. Shared Infrastructure (`utils/`)
 
-    🔹 Uses class-validator decorators.
+The `utils/` directory contains **cross-cutting concerns** used by all modules:
 
-    🔹 Prevent ORM leakage into APIs.
+- Database session management
+- Configuration loading
+- Logging setup
+- Shared validators
+- Common helpers and constants
 
-#### Common (`src/common/`)
+This acts as a **shared kernel**, kept intentionally small and stable.
 
-    🔹 Cross-cutting concerns (config, constants, decorators, pipes, utils).
+## 8. Authentication & Security
 
-    🔹 Guards for authentication/authorization.
+- Authentication is handled using **JWT**
+- Auth dependencies are injected via FastAPI `Depends`
+- Protected routes explicitly declare authentication requirements
+- No hidden global state
 
-    🔹 Utility functions.
+## 9. Testing Strategy
 
-### 4. Design Principles
+Tests mirror the feature-based structure:
 
-    🔹 Clean Architecture: independent layers, no inward dependencies.
+```text
+tests/
+├── user_app/
+├── nrel_app/
+```
 
-    🔹 Repository Pattern: isolate DB logic.
+### Benefits
 
-    🔹 Service Layer Pattern: centralize business rules.
+- Clear ownership of tests
+- Easy mocking of dependencies
+- Fast feedback during development
+- Safer refactoring
 
-    🔹 DTO Pattern: define clear input/output contracts.
+## 10. Adding a New Feature (Recommended Workflow)
 
-    🔹 Dependency Injection: NestJS built-in DI system.
+1. Create a new module under `apps/`
+2. Define database models in `models.py`
+3. Generate a migration using Alembic
+4. Add Pydantic schemas in `serializers.py`
+5. Implement routes in `router.py`
+6. Add domain logic in `utils.py`
+7. Register the router in `main.py`
+8. Add tests under `tests/<module_name>/`
 
-    🔹 Module Pattern: feature-based modules for organization.
+This workflow keeps features isolated and consistent.
 
-    🔹 Guard Pattern: authentication and authorization.
+## 11. API Documentation
 
-### 5. Request Flow Example (Create Project)
+- Swagger UI is available at `/docs`
+- OpenAPI schema is auto-generated
+- All request/response models are documented via Pydantic
 
-    1. REST API receives request POST /api/consultant/projects.
+## 12. What This Architecture Is (and Is Not)
 
-    2. AuthGuard validates JWT token.
+### ✅ Is
 
-    3. Controller validates payload using DTO (CreateProjectDto).
+- Modular Monolith
+- Feature-based
+- Domain-oriented
+- FastAPI-native
 
-    4. Service Layer (ProjectService) applies business rules.
+### ❌ Is Not
 
-    5. Repository persists entity via Prisma Client.
+- Microservices
+- Strict Clean Architecture
+- Over-abstracted service/repository layers
+- Framework-driven boilerplate
 
-    6. Prisma maps to PostgreSQL.
+These are **intentional trade-offs** to reduce complexity while preserving scalability.
 
-    7. Response DTO is returned.
+## 13. Future Improvements
 
-### 6. Adding a New Feature (Example: New Module)
+Potential future enhancements include:
 
-    1.  Add Prisma model → `prisma/schema.prisma`.
+- Enhanced RBAC (role & permission-based access)
+- Caching layer (Redis)
+- Rate limiting
+- Event-driven integrations
+- Selective module extraction into services if needed
 
-    2.  Create migration →
-    ```bash
-        npx prisma migrate dev --name add_new_feature
-    ```
+## 14. Summary
 
-    3.  Generate Prisma Client →
-    ```bash
-        npx prisma generate
-    ```
+The SEPAS backend is a **FastAPI-based modular monolith** designed around **feature-based application modules**.
 
-    4.  Create repository → `src/modules/new-module/new-module.repository.ts`.
+Key strengths of this design:
 
-    5.  Create service → `src/modules/new-module/new-module.service.ts`.
+- Clear domain boundaries
+- Predictable extension patterns
+- High testability
+- Low operational complexity
+- Long-term maintainability
 
-    6.  Add DTOs → `src/modules/new-module/new-module.dto.ts`.
-
-    7.  Add controller → `src/modules/new-module/new-module.controller.ts`.
-
-    8.  Create module → `src/modules/new-module/new-module.module.ts`.
-
-    9.  Register module in `app.module.ts`.
-
-### 7. Diagrams
-
-#### Layered Architecture
-
-### 8. Validation Tools
-
-    🔹 ESLint + Prettier → code quality and formatting.
-
-    🔹 Jest → test services and controllers.
-
-    🔹 TypeScript → type safety.
-
-    🔹 Swagger → auto-generated API docs at `/api`.
-
-    🔹 class-validator → DTO validation.
-
-### 9. Future Improvements
-
-    🔹 GraphQL support (NestJS GraphQL module).
-
-    🔹 Background workers (Bull/BullMQ + Redis) for async tasks.
-
-    🔹 Enhanced RBAC (role + permission middleware).
-
-    🔹 Audit logging for compliance.
-
-    🔹 Caching layer (Redis).
-
-    🔹 Rate limiting.
+This architecture provides a **solid foundation** for evolving SEPAS as system requirements grow.

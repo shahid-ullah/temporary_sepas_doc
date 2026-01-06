@@ -1,356 +1,286 @@
-# 📘 SEN Backend – Design Patterns
+# SEPAS Backend – Design Patterns
 
-### 1. Overview
+## 1. Overview
 
-    The SEN backend is designed with Clean Architecture principles to ensure separation of concerns, testability, and scalability.
-    Key design patterns applied include:
+The **SEPAS Backend** follows a **FastAPI-based Modular Monolith architecture** built using **feature-based application modules**, inspired by Django’s app pattern.
 
-    🔹 Repository Pattern
+Rather than enforcing strict Clean Architecture, SEPAS applies **pragmatic, domain-oriented design patterns** that emphasize:
 
-    🔹 Service Layer Pattern
+- High cohesion within features
+- Explicit domain ownership
+- Clear request lifecycle
+- Ease of testing and extension
 
-    🔹 Data Transfer Object (DTO) Pattern
+### Core Design Patterns Used
 
-    🔹 Dependency Injection (NestJS DI)
+- Feature-Based Module Pattern (Django-style apps)
+- Modular Monolith
+- Local Layered Architecture
+- DTO Pattern (Pydantic)
+- Dependency Injection (FastAPI `Depends`)
+- Router Pattern
+- Shared Kernel (Common Utilities)
 
-    🔹 Module Pattern (NestJS feature modules)
+---
 
-    🔹 Guard Pattern (Authentication/Authorization)
+## 2. Feature-Based Module Pattern (Primary Pattern)
 
-    🔹 Factory Pattern (via Prisma & DTOs)
+### Location: `apps/*`
 
-### 2. Repository Pattern
+### Intent
 
-#### 📍 Location: `src/modules/*/repositories/`
+- Organize code by **business domain**, not technical layer
+- Encapsulate models, routes, validation, and helpers per feature
+- Reduce cross-module coupling
+- Enable future extraction into microservices if needed
 
-#### Intent
-
-    🔹 Abstracts database access.
-
-    🔹 Keeps Prisma operations separate from business logic.
-
-    🔹 Makes persistence layer replaceable (PostgreSQL → MySQL, or Prisma → TypeORM).
-
-#### Example
-
-```typescript
-// project.repository.ts
-
-@Injectable()
-export class ProjectRepository implements ProjectRepositoryInterface {
-  constructor(
-    private readonly db: DatabaseService,
-    private logger: Logger,
-  ) {}
-
-  async findById(id: number): Promise<Project | null> {
-    return await this.db.project.findUnique({
-      where: { id },
-    });
-  }
-
-  async create(data: Prisma.ProjectCreateInput): Promise<Project> {
-    return await this.db.project.create({
-      data,
-    });
-  }
-
-  async update(id: number, data: Prisma.ProjectUpdateInput): Promise<Project> {
-    return await this.db.project.update({
-      where: { id },
-      data,
-    });
-  }
-}
-```
-
-✅ Benefit: Business logic (ProjectService) never deals with Prisma directly.
-
-### 3. Service Layer Pattern
-
-#### 📍 Location: `src/modules/*/services/`
-
-#### Intent
-
-    🔹 Encapsulates business rules and workflows.
-
-    🔹 Coordinates repositories, applies validation, raises business errors.
-
-    🔹 Keeps controllers thin.
-
-#### Example
-
-```typescript
-// project.service.ts
-
-@Injectable()
-export class ProjectService {
-  constructor(
-    @Inject('ProjectRepositoryInterface')
-    private readonly projectRepository: ProjectRepositoryInterface,
-    private readonly logger: Logger,
-  ) {}
-
-  async createProject(data: CreateProjectDto): Promise<Project> {
-    // Business logic: check if project name already exists
-    const existing = await this.projectRepository.findByName(data.name);
-    if (existing) {
-      throw new ConflictException('Project with this name already exists');
-    }
-
-    // Business logic: apply default values
-    const projectData = {
-      ...data,
-      status: data.status || 'DRAFT',
-      createdAt: new Date(),
-    };
-
-    return await this.projectRepository.create(projectData);
-  }
-}
-```
-
-✅ Benefit: The same service can be reused by different controllers or future GraphQL resolvers.
-
-### 4. DTO (Data Transfer Object) Pattern
-
-#### 📍 Location: `src/modules/*/dto.ts`
-
-#### Intent
-
-    🔹 Decouples external API contracts from internal models.
-
-    🔹 Prevents Prisma entities from leaking into API.
-
-    🔹 Provides strong validation using class-validator.
-
-#### Example
-
-```typescript
-// project.dto.ts
-
-import { IsString, IsOptional, IsEnum, MinLength } from 'class-validator';
-import { ApiProperty } from '@nestjs/swagger';
-
-export class CreateProjectDto {
-  @ApiProperty({ description: 'Project name' })
-  @IsString()
-  @MinLength(3)
-  name: string;
-
-  @ApiProperty({ description: 'Project description', required: false })
-  @IsOptional()
-  @IsString()
-  description?: string;
-
-  @ApiProperty({ description: 'Project status', enum: ProjectStatus })
-  @IsEnum(ProjectStatus)
-  status: ProjectStatus;
-}
-
-export class ProjectResponseDto {
-  id: number;
-  name: string;
-  description: string;
-  status: ProjectStatus;
-  createdAt: Date;
-  updatedAt: Date;
-}
-```
-
-✅ Benefit: REST API contracts are clearly defined and validated.
-
-### 5. Dependency Injection
-
-#### 📍 Location: Used throughout NestJS modules.
-
-#### Intent
-
-    🔹 Injects dependencies (DB service, authenticated user, services) instead of hardcoding them.
-
-    🔹 Improves testability & loose coupling.
-
-    🔹 Uses NestJS built-in DI container.
-
-#### Example
-
-```typescript
-// project.module.ts
-
-@Module({
-  imports: [DatabaseModule],
-  controllers: [ProjectController],
-  providers: [
-    {
-      provide: 'ProjectRepositoryInterface',
-      useClass: ProjectRepository,
-    },
-    {
-      provide: 'ProjectServiceInterface',
-      useClass: ProjectService,
-    },
-  ],
-  exports: ['ProjectServiceInterface'],
-})
-export class ProjectModule {}
-
-// project.controller.ts
-
-@Controller('/api/consultant/projects')
-export class ProjectController {
-  constructor(
-    @Inject('ProjectServiceInterface')
-    private readonly projectService: ProjectServiceInterface,
-  ) {}
-
-  @Post()
-  async create(@Body() createDto: CreateProjectDto) {
-    return await this.projectService.createProject(createDto);
-  }
-}
-```
-
-✅ Benefit: Swap implementations (e.g., mock repository) in tests easily.
-
-### 6. Module Pattern
-
-#### 📍 Location: `src/modules/*/`
-
-#### Intent
-
-    🔹 Organizes code by feature.
-
-    🔹 Encapsulates related functionality (controller, service, repository).
-
-    🔹 Enables module imports/exports for reusability.
-
-#### Example
-
-```typescript
-// project.module.ts
-
-@Module({
-  imports: [CostModule, DatabaseModule],
-  controllers: [ProjectController],
-  providers: [
-    ProjectService,
-    ProjectRepository,
-    // ... other providers
-  ],
-  exports: ['ProjectServiceInterface', 'ProjectRepositoryInterface'],
-})
-export class ProjectModule {}
-```
-
-✅ Benefit: Clear feature boundaries, easy to understand and maintain.
-
-### 7. Guard Pattern
-
-#### 📍 Location: `src/modules/auth/auth.guard.ts`
-
-#### Intent
-
-    🔹 Protects routes with authentication/authorization.
-
-    🔹 Validates JWT tokens.
-
-    🔹 Checks user roles and permissions.
-
-#### Example
-
-```typescript
-// auth.guard.ts
-
-@Injectable()
-export class AuthGuard implements CanActivate {
-  constructor(
-    private jwtService: JwtService,
-    private userService: UserService,
-  ) {}
-
-  async canActivate(context: ExecutionContext): Promise<boolean> {
-    const request = context.switchToHttp().getRequest();
-    const token = this.extractTokenFromHeader(request);
-
-    if (!token) {
-      throw new UnauthorizedException();
-    }
-
-    try {
-      const payload = await this.jwtService.verifyAsync(token);
-      request.user = await this.userService.findById(payload.sub);
-    } catch {
-      throw new UnauthorizedException();
-    }
-
-    return true;
-  }
-}
-
-// Usage in controller
-@Controller('/api/consultant/projects')
-@UseGuards(AuthGuard)
-export class ProjectController {
-  // Protected routes
-}
-```
-
-✅ Benefit: Centralized authentication logic, reusable across all protected routes.
-
-### 8. Factory Pattern (Prisma & DTOs)
-
-    🔹 Prisma Client → acts as factory for type-safe database queries.
-
-    🔹 Prisma Migrate → generates migration scripts (factory for schema evolution).
-
-    🔹 DTOs → act as factories for validated domain objects.
-
-### 9. Benefits of This Architecture
-
-    🔹 Maintainability → clear boundaries between controller, service, and repository layers.
-
-    🔹 Testability → services tested with mock repositories.
-
-    🔹 Flexibility → support REST API with potential for GraphQL without duplicating logic.
-
-    🔹 Replaceability → swap DB (PostgreSQL → MySQL), or HTTP adapter (Fastify → Express).
-
-    🔹 Scalability → easy to add new modules (new features, external integrations, etc.).
-
-    🔹 Type Safety → TypeScript + Prisma provide end-to-end type safety.
-
-### 10. Module Structure Example
-
-Each feature module typically follows this structure:
+### Structure
 
 ```bash
-    📂 project/
-    ┣ 📄 project.module.ts          # Module definition
-    ┣ 📄 project.controller.ts      # HTTP endpoints
-    ┣ 📄 project.service.ts         # Business logic
-    ┣ 📄 project.repository.ts      # Data access
-    ┣ 📄 project.dto.ts             # Data Transfer Objects
-    ┣ 📄 project.interface.ts       # TypeScript interfaces
-    ┣ 📄 project.validation.ts      # Validation schemas (Zod)
-    ┣ 📄 project.controller.spec.ts # Controller tests
-    ┣ 📄 project.service.spec.ts    # Service tests
-    ┗ 📄 project.repository.spec.ts # Repository tests
+apps/user_app/
+├── models.py        # ORM models
+├── router.py        # FastAPI routes & dependencies
+├── serializers.py   # Pydantic schemas (DTOs)
+├── utils.py         # Domain logic & helpers
 ```
 
-### 11. Summary
+### Benefits
 
-    🔹 The SEN backend applies Clean Architecture through a combination of patterns:
+✅ High cohesion
+✅ Clear ownership
+✅ Django-like familiarity
+✅ Easier onboarding
 
-    🔹 Repositories handle persistence (Prisma Client).
+## 3. Modular Monolith Pattern
 
-    🔹 Services encapsulate business rules.
+### Intent
 
-    🔹 DTOs define communication contracts.
+- Maintain a **single deployable unit**
+- Avoid premature microservices
+- Keep operational complexity low
 
-    🔹 Dependency Injection ensures flexibility.
+### Characteristics
 
-    🔹 Modules organize features.
+- One FastAPI application
+- Independent internal modules
+- Shared infrastructure (DB, logging, config)
 
-    🔹 Guards protect routes.
+> This architecture balances **scalability and simplicity** while keeping the system evolvable.
 
-    🔹 Together, these patterns make the system modular, robust, and future-proof.
+---
+
+## 4. Local Layered Architecture (Within Each Module)
+
+Each application module follows a **local layered structure**:
+
+```text
+Router → Serializer → Model → Utility
+```
+
+### Router Layer (`router.py`)
+
+- FastAPI `APIRouter`
+- Handles:
+  - HTTP requests
+  - Dependency injection
+  - Authentication hooks
+
+- No persistence or heavy business logic
+
+```python
+@router.post("/users")
+def create_user(
+    payload: UserCreate,
+    db: Session = Depends(get_db),
+):
+    return create_user_logic(db, payload)
+```
+
+---
+
+### Serializer / DTO Pattern (`serializers.py`)
+
+### Intent
+
+- Define explicit request/response contracts
+- Validate input data
+- Prevent ORM leakage into API responses
+
+```python
+class UserCreate(BaseModel):
+    email: EmailStr
+    password: str
+
+
+class UserResponse(BaseModel):
+    id: int
+    email: EmailStr
+```
+
+✅ Clear API contracts
+✅ Automatic validation
+✅ Framework-agnostic schemas
+
+---
+
+### Model Layer (`models.py`)
+
+### Intent
+
+- Map Python objects to database tables
+- Encapsulate persistence logic
+
+```python
+class User(Base):
+    __tablename__ = "users"
+
+    id = Column(Integer, primary_key=True)
+    email = Column(String, unique=True)
+```
+
+Models:
+
+- Do not import FastAPI
+- Do not handle request logic
+
+---
+
+### Utility / Domain Logic Layer (`utils.py`, `validators.py`)
+
+### Intent
+
+- Encapsulate domain-specific logic
+- Keep routers thin
+- Reuse logic across routes
+
+```python
+def hash_password(password: str) -> str:
+    return pwd_context.hash(password)
+```
+
+---
+
+## 5. Dependency Injection Pattern (FastAPI)
+
+### Intent
+
+- Explicitly declare dependencies
+- Improve testability
+- Avoid global state
+
+### Example
+
+```python
+def get_db():
+    db = SessionLocal()
+    try:
+        yield db
+    finally:
+        db.close()
+```
+
+```python
+@router.get("/users")
+def list_users(db: Session = Depends(get_db)):
+    return db.query(User).all()
+```
+
+### Benefits
+
+✅ Request-scoped dependencies
+✅ Easy mocking in tests
+✅ No hidden wiring
+
+---
+
+## 6. Router Pattern
+
+### Location: `apps/*/router.py`
+
+### Intent
+
+- Group endpoints by domain
+- Keep HTTP concerns isolated
+- Enable easy versioning
+
+```python
+router = APIRouter(prefix="/users", tags=["Users"])
+```
+
+Routers are registered centrally in `main.py`.
+
+---
+
+## 7. Shared Kernel Pattern
+
+### Location: `utils/`
+
+### Intent
+
+- Centralize cross-cutting concerns
+- Avoid duplication across modules
+
+### Contents
+
+- Database session management
+- Logging configuration
+- Application settings
+- Shared validators
+- Global helpers
+
+This acts as a **Shared Kernel**, carefully kept small and stable.
+
+---
+
+## 8. What This Architecture Avoids (Intentionally)
+
+❌ Strict Clean Architecture
+❌ Service / Repository over-abstraction
+❌ Microservices sprawl
+❌ Framework-driven structure
+
+> Patterns are applied **only when they add value**.
+
+---
+
+## 9. Testing-Aligned Design
+
+Tests mirror feature modules:
+
+```bash
+tests/
+├── user_app/
+├── nrel_app/
+```
+
+### Benefits
+
+- Clear scope per test
+- Easy mocking of dependencies
+- Domain-focused assertions
+
+---
+
+## 10. Benefits of This Design
+
+- **Maintainability** – changes stay within modules
+- **Testability** – FastAPI DI enables easy mocking
+- **Clarity** – code organized by domain, not layers
+- **Scalability** – modules can be extracted later
+- **Pragmatism** – avoids unnecessary abstractions
+
+---
+
+## 11. Summary
+
+The SEPAS backend applies a **Django-inspired, feature-based modular design** implemented in FastAPI.
+
+Key takeaways:
+
+- Feature-based modules are the primary organizing unit
+- Each module uses a local layered structure
+- Pydantic DTOs define API contracts
+- FastAPI dependency injection ensures flexibility
+- The system is a modular monolith, not microservices
+
+This design provides a **clean, scalable, and pragmatic foundation** for long-term development.
