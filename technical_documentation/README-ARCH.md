@@ -1,4 +1,4 @@
-# 📘 SEPAS Backend – Architecture & Developer Guide
+# SEPAS Backend – Architecture & Developer Guide
 
 ## 1. Purpose
 

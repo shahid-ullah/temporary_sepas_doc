@@ -1,4 +1,4 @@
-# 📘 SEPAS Backend – Architecture & Design Documentation
+# SEPAS Backend – Architecture & Design Documentation
 
 ## 1. Overview
 
@@ -275,12 +275,3 @@ The SEPAS backend is a **FastAPI-based modular monolith** that uses:
 - Strong domain ownership
 
 This architecture provides an optimal balance between **clarity, scalability, and maintainability**, while avoiding unnecessary complexity.
-
----
-
-If you want next, I can:
-
-- Write a **DESIGN_PATTERNS.md** matching this architecture
-- Review and refine **README.md**
-- Add **architecture diagrams (Mermaid)**
-- Help you justify this design in reviews or interviews

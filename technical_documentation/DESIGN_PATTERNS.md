@@ -1,4 +1,4 @@
-# 📘 SEPAS Backend – Design Patterns
+# SEPAS Backend – Design Patterns
 
 ## 1. Overview
 
@@ -195,7 +195,7 @@ def list_users(db: Session = Depends(get_db)):
 
 ## 6. Router Pattern
 
-### 📍 Location: `apps/*/router.py`
+### Location: `apps/*/router.py`
 
 ### Intent
 
@@ -213,7 +213,7 @@ Routers are registered centrally in `main.py`.
 
 ## 7. Shared Kernel Pattern
 
-### 📍 Location: `utils/`
+### Location: `utils/`
 
 ### Intent
 
