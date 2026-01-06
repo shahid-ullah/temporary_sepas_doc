@@ -27,7 +27,7 @@ The goal of this documentation is to ensure:
 
 ## 3. Architectural Overview
 
-SEPAS is implemented as a **Modular Monolith** using a **feature-based application architecture**, inspired by Django’s app structure.
+SEPAS is implemented as a **Modular Monolith** using a **feature-based application architecture.**
 
 Instead of enforcing strict Clean Architecture, the system adopts a **pragmatic, domain-oriented design** that balances clarity, scalability, and simplicity.
 
@@ -169,14 +169,14 @@ This workflow keeps features isolated and consistent.
 
 ## 12. What This Architecture Is (and Is Not)
 
-### ✅ Is
+### Is
 
 - Modular Monolith
 - Feature-based
 - Domain-oriented
 - FastAPI-native
 
-### ❌ Is Not
+### Is Not
 
 - Microservices
 - Strict Clean Architecture

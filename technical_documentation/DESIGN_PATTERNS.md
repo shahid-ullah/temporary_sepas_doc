@@ -2,7 +2,7 @@
 
 ## 1. Overview
 
-The **SEPAS Backend** follows a **FastAPI-based Modular Monolith architecture** built using **feature-based application modules**, inspired by Django’s app pattern.
+The **SEPAS Backend** follows a **FastAPI-based Modular Monolith architecture** built using **feature-based application modules.**
 
 Rather than enforcing strict Clean Architecture, SEPAS applies **pragmatic, domain-oriented design patterns** that emphasize:
 
@@ -13,7 +13,7 @@ Rather than enforcing strict Clean Architecture, SEPAS applies **pragmatic, doma
 
 ### Core Design Patterns Used
 
-- Feature-Based Module Pattern (Django-style apps)
+- Feature-Based Module Pattern
 - Modular Monolith
 - Local Layered Architecture
 - DTO Pattern (Pydantic)
@@ -46,10 +46,9 @@ apps/user_app/
 
 ### Benefits
 
-✅ High cohesion
-✅ Clear ownership
-✅ Django-like familiarity
-✅ Easier onboarding
+High cohesion
+Clear ownership
+Easier onboarding
 
 ## 3. Modular Monolith Pattern
 
@@ -117,9 +116,9 @@ class UserResponse(BaseModel):
     email: EmailStr
 ```
 
-✅ Clear API contracts
-✅ Automatic validation
-✅ Framework-agnostic schemas
+Clear API contracts
+Automatic validation
+Framework-agnostic schemas
 
 ---
 
@@ -187,9 +186,9 @@ def list_users(db: Session = Depends(get_db)):
 
 ### Benefits
 
-✅ Request-scoped dependencies
-✅ Easy mocking in tests
-✅ No hidden wiring
+Request-scoped dependencies
+Easy mocking in tests
+No hidden wiring
 
 ---
 
@@ -234,10 +233,10 @@ This acts as a **Shared Kernel**, carefully kept small and stable.
 
 ## 8. What This Architecture Avoids (Intentionally)
 
-❌ Strict Clean Architecture
-❌ Service / Repository over-abstraction
-❌ Microservices sprawl
-❌ Framework-driven structure
+Strict Clean Architecture
+Service / Repository over-abstraction
+Microservices sprawl
+Framework-driven structure
 
 > Patterns are applied **only when they add value**.
 
@@ -273,7 +272,7 @@ tests/
 
 ## 11. Summary
 
-The SEPAS backend applies a **Django-inspired, feature-based modular design** implemented in FastAPI.
+The SEPAS backend applies a **feature-based modular design** implemented in FastAPI.
 
 Key takeaways:
 

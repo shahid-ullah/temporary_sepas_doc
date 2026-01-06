@@ -2,11 +2,11 @@
 
 ## 1. Overview
 
-The **SEPAS (Smart Energy Planning and Analysis System) Backend** is built with **FastAPI** and **PostgreSQL**, designed as a **Modular Monolith** using a **feature-based application architecture**, inspired by Django’s app structure.
+The **SEPAS (Smart Energy Planning and Analysis System) Backend** is built with **FastAPI** and **PostgreSQL**, designed as a **Modular Monolith** using a **feature-based application architecture.**
 
 Rather than strict Clean Architecture, the system adopts:
 
-- **Feature-Based Modular Architecture (Django-style apps)**
+- **Feature-Based Modular Architecture**
 - **Layered Architecture within each module**
 - **Strong domain boundaries with high internal cohesion**
 
@@ -22,21 +22,20 @@ This approach ensures the system is:
 
 ### Primary Architecture
 
-✅ **Modular Monolith**
+**Modular Monolith**
 
 - Single deployable FastAPI application
 - Internally composed of multiple independent application modules
 
 ### Secondary Architecture
 
-✅ **Feature-Based Application Architecture**
+**Feature-Based Application Architecture**
 
 - Each feature/domain is implemented as a self-contained module under `apps/`
-- Similar to Django’s `INSTALLED_APPS` model
 
 ### Internal Structure
 
-✅ **Layered Architecture per Module**
+**Layered Architecture per Module**
 
 Each application module contains:
 
@@ -85,7 +84,6 @@ apps/user_app/
 
 ### Key Characteristics
 
-- Modules do **not depend on each other directly**
 - Shared logic lives in `utils/`
 - Each module owns its:
   - Database models
@@ -159,7 +157,7 @@ This prevents duplication and keeps feature modules focused.
 Client
 → FastAPI Router (user_app/router.py)
 → Pydantic Validation (serializers.py)
-→ Domain Logic (utils.py)
+→ Domain Logic (router.py & utils.py)
 → SQLAlchemy Model (models.py)
 → Database Commit
 → Serialized Response
@@ -183,16 +181,6 @@ Dependencies are:
 
 ---
 
-## 9. Testing Strategy
-
-Tests mirror the application structure:
-
-```bash
-tests/
-├── user_app/
-├── nrel_app/
-```
-
 ### Benefits
 
 - Clear module ownership
@@ -204,7 +192,7 @@ tests/
 
 ## 10. Design Patterns Used
 
-### ✅ Modular Monolith
+### Modular Monolith
 
 - Single deployable unit
 - Strong internal boundaries
@@ -212,7 +200,7 @@ tests/
 
 ---
 
-### ✅ Feature-Based Module Pattern
+### Feature-Based Module Pattern
 
 - Code organized by domain, not by technical layer
 - High cohesion within modules
@@ -220,7 +208,7 @@ tests/
 
 ---
 
-### ✅ Layered Architecture (Local)
+### Layered Architecture (Local)
 
 - Routers → Serializers → Models
 - Clear separation of responsibilities
@@ -228,7 +216,7 @@ tests/
 
 ---
 
-### ✅ DTO Pattern (Pydantic)
+### DTO Pattern (Pydantic)
 
 - Explicit request/response contracts
 - Prevents ORM leakage
@@ -236,19 +224,18 @@ tests/
 
 ---
 
-### ✅ Dependency Injection (FastAPI)
+### Dependency Injection (FastAPI)
 
 - Function-based DI using `Depends`
 - Improves testability
-- No global state
 
 ---
 
 ## 11. What This Architecture Is NOT
 
-❌ Not Microservices
-❌ Not Strict Clean Architecture
-❌ Not Hexagonal / Onion Architecture
+- Not Microservices
+- Not Strict Clean Architecture
+- Not Hexagonal / Onion Architecture
 
 > This is an intentional design choice to reduce complexity while preserving modularity.
 
@@ -269,7 +256,7 @@ If needed, the system can evolve toward:
 
 The SEPAS backend is a **FastAPI-based modular monolith** that uses:
 
-- Django-inspired feature-based applications
+- feature-based applications
 - Local layered architecture per module
 - Explicit dependency injection
 - Strong domain ownership
