@@ -54,7 +54,7 @@ sepas-backend/
 │   └── base_app/
 │
 ├── utils/                # Shared cross-cutting utilities
-├── migrations/           # Alembic migrations
+├── migrations/           # Alembic/Database migrations
 ├── tests/                # Module-aligned test suites
 ├── main.py               # Application entry point
 ├── Dockerfile
@@ -185,21 +185,15 @@ This workflow keeps features isolated and consistent.
 
 These are **intentional trade-offs** to reduce complexity while preserving scalability.
 
----
-
 ## 13. Future Improvements
 
 Potential future enhancements include:
 
-- Background workers for long-running tasks
-- Async task queues
 - Enhanced RBAC (role & permission-based access)
 - Caching layer (Redis)
 - Rate limiting
 - Event-driven integrations
 - Selective module extraction into services if needed
-
----
 
 ## 14. Summary
 
