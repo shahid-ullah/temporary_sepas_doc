@@ -19,7 +19,6 @@ The goal of this documentation is to ensure:
 - **API Style:** REST
 - **Authentication:** JWT (JSON Web Tokens)
 - **Validation:** Pydantic
-- **Testing:** Pytest
 - **Documentation:** Swagger / OpenAPI (`/docs`)
 - **Deployment:** Docker, Docker Compose
 - **File Storage:** AWS S3
@@ -55,7 +54,6 @@ sepas-backend/
 │
 ├── utils/                # Shared cross-cutting utilities
 ├── migrations/           # Alembic/Database migrations
-├── tests/                # Module-aligned test suites
 ├── main.py               # Application entry point
 ├── Dockerfile
 ├── docker-compose.yml
@@ -131,15 +129,6 @@ This acts as a **shared kernel**, kept intentionally small and stable.
 - Protected routes explicitly declare authentication requirements
 - No hidden global state
 
-## 9. Testing Strategy
-
-Tests mirror the feature-based structure:
-
-```text
-tests/
-├── user_app/
-├── nrel_app/
-```
 
 ### Benefits
 
@@ -157,7 +146,7 @@ tests/
 5. Implement routes in `router.py`
 6. Add domain logic in `utils.py`
 7. Register the router in `main.py`
-8. Add tests under `tests/<module_name>/`
+
 
 This workflow keeps features isolated and consistent.
 
